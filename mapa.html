@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Mapa Szlaku Bitwy pod Mokrą</title>
     <!-- Leaflet CSS -->
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
@@ -10,6 +10,13 @@
         body { margin: 0; padding: 0; }
         #map-container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 10px; overflow: visible !important; position: relative !important; z-index: 1000 !important; }
         #map { width: 100% !important; height: 600px !important; border: 2px solid #2e5b2e; border-radius: 8px; position: relative !important; z-index: 1000 !important; overflow: visible !important; }
+        @media only screen and (max-width: 768px) {
+            #map-container { padding: 5px; }
+            #map { height: 50vh !important; min-height: 300px !important; }
+        }
+        @media only screen and (max-width: 480px) {
+            #map { height: 40vh !important; min-height: 250px !important; }
+        }
     </style>
 </head>
 <body>
@@ -33,7 +40,7 @@
                 return;
             }
 
-            // Initialize map with fixed zoom and center
+            // Initialize map with touch optimization
             try {
                 var map = L.map('map', {
                     center: [50.96, 18.92],
@@ -41,7 +48,10 @@
                     zoomControl: true,
                     minZoom: 10,
                     maxBounds: [[50.8, 18.7], [51.1, 19.1]],
-                    maxBoundsViscosity: 1.0
+                    maxBoundsViscosity: 1.0,
+                    touchZoom: true,
+                    scrollWheelZoom: false, // Disable scroll zoom on mobile for better control
+                    doubleClickZoom: true
                 });
 
                 // Add OpenStreetMap tiles
@@ -82,7 +92,7 @@
 
                 // Apply initial adjustment and listen for resize
                 adjustMapView();
-                window.addEventListener('resize', adjustMapView); // Handle iframe resize
+                window.addEventListener('resize', adjustMapView); // Handle mobile resize
                 setTimeout(adjustMapView, 500); // Retry after delay
                 setTimeout(adjustMapView, 1000); // Retry again for iframe load
             } catch (error) {
