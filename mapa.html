@@ -8,8 +8,8 @@
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
     <style>
         body { margin: 0; padding: 0; }
-        #map-container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 10px; }
-        #map { width: 100%; height: 600px; border: 2px solid #2e5b2e; border-radius: 8px; position: relative; z-index: 1; }
+        #map-container { width: 100%; max-width: 1200px; margin: 0 auto; padding: 10px; overflow: visible; position: relative; z-index: 10; }
+        #map { width: 100%; height: 600px; border: 2px solid #2e5b2e; border-radius: 8px; position: relative; z-index: 10; overflow: visible; }
     </style>
 </head>
 <body>
@@ -33,12 +33,15 @@
                 return;
             }
 
-            // Initialize map
+            // Initialize map with fixed zoom and center
             try {
                 var map = L.map('map', {
                     center: [50.96, 18.92],
                     zoom: 13,
-                    zoomControl: true
+                    zoomControl: true,
+                    minZoom: 10, // Prevent excessive zooming out
+                    maxBounds: [[50.8, 18.7], [51.1, 19.1]], // Restrict to the area around Mokra
+                    maxBoundsViscosity: 1.0 // Enforce bounds strictly
                 });
 
                 // Add OpenStreetMap tiles
@@ -73,10 +76,14 @@
                 // Fit map to polyline bounds
                 map.fitBounds(polyline.getBounds());
 
-                // Force map to redraw
-                setTimeout(function() {
+                // Robust redraw with retry
+                function redrawMap() {
                     map.invalidateSize();
-                }, 100);
+                    map.fitBounds(polyline.getBounds());
+                }
+                setTimeout(redrawMap, 100);
+                setTimeout(redrawMap, 500); // Retry after 500ms to handle iframe delays
+                setTimeout(redrawMap, 1000); // Retry again for safety
             } catch (error) {
                 console.error('Error initializing Leaflet map:', error);
             }
